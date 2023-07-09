@@ -8,12 +8,11 @@ import (
 	"os/exec"
 )
 
-const Version = "v0.0.2"
+const Version = "v0.0.3"
 
 var rootCmd = &cobra.Command{
 	Use:   "git-profile [profile-name]",
 	Short: "Helper for managing multiple git profiles for the same user",
-	Long:  `Complete documentation is available at https://github.com/gigurra/flycd`,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		users := getAvailableProfiles()
