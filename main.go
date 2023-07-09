@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/samber/lo"
 	"github.com/spf13/cobra"
 	"os"
 	"os/exec"
@@ -68,15 +67,8 @@ var setCmd = &cobra.Command{
 
 		users := getAvailableProfiles()
 
-		fmt.Printf("Available profiles: \n")
-		for profileName, v := range users {
-			fmt.Printf(" - %s: %s, %s, %s\n", profileName, v.SSHConfig.IdentityFile, v.GitConfig.UserName, v.GitConfig.UserEmail)
-		}
-
 		fmt.Printf("Setting profile '%s'\n", profileName)
-		profile, found := lo.FindKeyBy(users, func(key string, value User) bool {
-			return key == profileName
-		})
+		profile, found := users[profileName]
 
 		if !found {
 			fmt.Printf("Error: profile '%s' not found\n", profileName)
@@ -84,10 +76,50 @@ var setCmd = &cobra.Command{
 		}
 
 		// set ssh config
-		print(profile)
+		fmt.Printf("Setting Git parameters\n")
+		fmt.Printf(" - git config --global user.name %s\n", profile.GitConfig.UserName)
+		err := exec.Command("git", "config", "--global", "user.name", profile.GitConfig.UserName).Run()
+		if err != nil {
+			fmt.Printf("Error setting git config user.name: %v\n", err)
+			os.Exit(1)
+		}
 
-		fmt.Printf("Not implemented yet, sorry :(\n")
-		os.Exit(1)
+		fmt.Printf(" - git config --global user.email %s\n", profile.GitConfig.UserEmail)
+		err = exec.Command("git", "config", "--global", "user.email", profile.GitConfig.UserEmail).Run()
+		if err != nil {
+			fmt.Printf("Error setting git config user.email: %v\n", err)
+			os.Exit(1)
+		}
+
+		// set ssh config
+		fmt.Printf("Setting SSH parameters\n")
+
+		newContents := fmt.Sprintf(
+			`Host *
+    User "git"
+    IdentityFile "%s"
+    IdentitiesOnly "yes"
+    IdentityAgent "%s"
+`,
+			profile.SSHConfig.IdentityFile,
+			profile.SSHConfig.IdentityAgent,
+		)
+
+		fmt.Printf("New ssh config:\n")
+		print(newContents)
+
+		homeDir, err := os.UserHomeDir()
+		if err != nil {
+			fmt.Printf("Error getting home dir: %v\n", err)
+			os.Exit(1)
+		}
+
+		sshConfigFilePath := homeDir + "/.ssh/config"
+		err = os.WriteFile(sshConfigFilePath, []byte(newContents), 0644)
+		if err != nil {
+			fmt.Printf("Error writing %s: %v\n", sshConfigFilePath, err)
+			os.Exit(1)
+		}
 	},
 }
 
@@ -114,11 +146,8 @@ func main() {
 }
 
 type SSHConfig struct {
-	Host           string `json:"Host"`
-	User           string `json:"User"`
-	IdentityFile   string `json:"IdentityFile"`
-	IdentitiesOnly string `json:"IdentitiesOnly"`
-	IdentityAgent  string `json:"IdentityAgent"`
+	IdentityFile  string `json:"IdentityFile"`
+	IdentityAgent string `json:"IdentityAgent"`
 }
 
 type GitConfig struct {
