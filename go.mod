@@ -1,4 +1,4 @@
-module git-profile
+module github.com/gigurra/git-profile
 
 go 1.20
 
