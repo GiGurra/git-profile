@@ -17,3 +17,5 @@ id_dsa
 *.iml
 #vscode
 .vscode/
+
+/git-profile
