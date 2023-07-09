@@ -24,7 +24,7 @@ Make a git profiles file `~/.ssh/git-profiles.json` like so:
       "user.email": "email1@something.com"
     }
   },
-  "ingrid": {
+  "profile2": {
     "ssh_config": {
       "User": "git",
       "IdentityFile": "~/.ssh/profile2.pub",
