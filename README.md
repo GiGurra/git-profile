@@ -1,6 +1,7 @@
 # git-profile
 switch between git profiles
 
+SUPERCEDED BY https://github.com/GiGurra/profs
 
 ## Installation
 
